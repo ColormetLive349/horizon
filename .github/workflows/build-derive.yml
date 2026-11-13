@@ -19,14 +19,8 @@ jobs:
       - name: Set up Rust
         uses: dtolnay/rust-toolchain@stable
 
-      - name: Download PaperMC and extract vanilla server.jar
-        run: |
-          mkdir -p paper_tmp
-          cd paper_tmp
-          curl -L "https://fill-data.papermc.io/v1/objects/4c734aeb4da98845934af1e5481f0df7c80ad3ca50d272319ffe2b0e8a187c8a/paper-26.3-249.jar" -o paper.jar
-          java -Dpaperclip.patchonly=true -jar paper.jar || true
-          cp cache/mojang_26.3.jar ../server.jar
-          cd ..
+      - name: Download official server.jar
+        run: curl -L "https://piston-data.mojang.com/v1/objects/33680f5f2ac32864d6d7cf5e56a705fdb3e05f4c/server.jar" -o server.jar
 
       - name: Prepare derived assets
         run: cargo run --release -p horizon-prepare -- --prepare --server-jar server.jar
