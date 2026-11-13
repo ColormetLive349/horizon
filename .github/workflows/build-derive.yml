@@ -1,0 +1,41 @@
+name: Build horizon-derived.zip
+
+on:
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Set up Java 25
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '25'
+
+      - name: Set up Rust
+        uses: dtolnay/rust-toolchain@stable
+
+      - name: Download PaperMC and extract vanilla server.jar
+        run: |
+          mkdir -p paper_tmp
+          cd paper_tmp
+          curl -L "https://fill-data.papermc.io/v1/objects/4c734aeb4da98845934af1e5481f0df7c80ad3ca50d272319ffe2b0e8a187c8a/paper-26.3-249.jar" -o paper.jar
+          java -Dpaperclip.patchonly=true -jar paper.jar || true
+          cp cache/mojang_26.3.jar ../server.jar
+          cd ..
+
+      - name: Prepare derived assets
+        run: cargo run --release -p horizon-prepare -- --prepare --server-jar server.jar
+
+      - name: Package zip
+        run: bash packaging/android/make_derived_pack.sh
+
+      - name: Upload horizon-derived.zip
+        uses: actions/upload-artifact@v4
+        with:
+          name: horizon-derived
+          path: target/android/horizon-derived.zip
